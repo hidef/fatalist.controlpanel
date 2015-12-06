@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>CSS Integration JSON Editor Example</title>
+    <title>Fatalist - Control Panel</title>
     
     <!-- Foundation CSS framework (Bootstrap and jQueryUI also supported) -->
     <link rel='stylesheet' href='//cdn.jsdelivr.net/foundation/5.0.2/css/foundation.min.css'>
@@ -21,7 +21,7 @@
   <body>
     <div class='row'>
       <div class='medium-12 columns'>
-        <h1>Fatalist - Configuration</h1>
+        <h1>Fatalist - Control Panel</h1>
       </div>
     </div>
     <div class='row'>
@@ -36,7 +36,7 @@
     </div>
     <div class='row'>
       <div class='medium-12-columns'>
-        <button id='submit' class='tiny'>Submit (console.log)</button>
+        <button id='submit' class='tiny'>Save</button>
         <button id='restore' class='secondary tiny'>Restore to Default</button>
         <span id='valid_indicator' class='label'></span>
       </div>
@@ -49,14 +49,11 @@
       
       function getParameterByName(name) {
           name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-          var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+          var regex = new RegExp("[\\#&]" + name + "=([^&#]*)"),
               results = regex.exec(location.hash.replace('#', '?'));
           return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
       }
 
-      var id = getParameterByName('id');
-
-      
       
       // Initialize the editor
       var editor = new JSONEditor(document.getElementById('editor_holder'),{
@@ -72,20 +69,44 @@
         // Seed the form with a starting value
         startval: starting_value
       });
+     
+      var id = window.location.hash.substring(1);
+       
+      if ( id )
+      {
+        fetchSite(id);
+      }
+      fetchSites();
+      
+      function fetchSites()
+      {
+        
           $.ajax({
-            url: "/_config/" + id,
+            url: '/_config/',
             success: function(data){
-              
-              if ( Array.isArray(data) ) {
+           
                 // we must have brought back the entire config set
                 var keys = Object.keys(data);
                 $(keys).each(function(i, v){ 
-                    $('#sites').append($("<option>", { value: v, html: v }));
+                  if ( v ) $('#sites').append($("<option>", { value: v, html: v }));
                 });
                 
-                return;
-              }
-              
+                $('#sites').change(function()
+                {
+                  var site = $('#sites').val();
+                  fetchSite(site);
+                  window.location.hash = site;
+                });
+            }
+          });
+      }
+      
+      function fetchSite(siteID)
+      {
+        
+          $.ajax({
+            url: '/_config/' + siteID,
+            success: function(data){
               starting_value = data;
               editor.setValue(data);
             },
@@ -96,10 +117,13 @@
               editor.setValue({});
             }
           })
+      }
+      
       
       // Hook up the submit button to log to the console
       document.getElementById('submit').addEventListener('click',function() {
        
+       console.log('saving' + "/_config/" + id);
           $.ajax({
             url: "/_config/" + id,
             method: 'POST',
