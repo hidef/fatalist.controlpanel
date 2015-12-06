@@ -4,8 +4,6 @@ var Express = require('express'),
     proxy = require('express-http-proxy'),
     vhost = require('vhost');
 
-var objectAssign = require('object-assign');
-
 // database
 var redis = require("redis"),
     client = redis.createClient(process.env.REDIS_URL);
