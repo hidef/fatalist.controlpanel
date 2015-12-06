@@ -2,13 +2,25 @@ var Express = require('express'),
     app = new Express(),
     bodyParser = require('body-parser'),
     proxy = require('express-http-proxy'),
-    vhost = require('vhost');
+    vhost = require('vhost'),
+    url = require('url') ;
 
+
+function assert(boolean, message)
+{
+  if ( !boolean ) throw new Error(message);
+}
+
+
+var redisUrl = url.parse(process.env.REDIS_URL || 'redis://localhost:6379' );
+var authParts = redisUrl.auth.split(':');
+assert(authParts.length == 2 || authParts.length == 0, 'unexpected redis authentication values, expected nothing or <username>:<password>');
 // database
 var redis = require("redis"),
-    client = redis.createClient(process.env.REDIS_URL);
+    client = redis.createClient(redisUrl.host, redisUrl.port, authParts.length == 2 ? authParts[1] : null);
 
-console.log('connected to redis: ' + process.env.REDIS_URL);
+console.log('connected to redis');
+
 
 client.on("error", function (err) {
     console.log("Error " + err);
