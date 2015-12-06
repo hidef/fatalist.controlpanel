@@ -8,6 +8,8 @@ var Express = require('express'),
 var redis = require("redis"),
     client = redis.createClient(process.env.REDIS_URL);
 
+console.log('connected to redis: ' + process.env.REDIS_URL);
+
 client.on("error", function (err) {
     console.log("Error " + err);
 });
@@ -17,6 +19,12 @@ app.use( bodyParser.json() );
 
 // expose static admin UI
 app.use(Express.static('public'));
+
+app.get('/_env', function(req, res)
+{
+  res.send(process.env);
+  res.end();
+});
 
 app.post('/_config/*', function(req, res, next) {
   var key = req.originalUrl.replace('/_config/', '');
@@ -36,6 +44,7 @@ app.get('/_config/*', function(req, res, next) {
   else 
   {
     client.keys("*", function (err, replies) {
+      if (err) console.log(err);
         client.mget(replies, function(err, resp) {
           
           var responses = resp.map(JSON.parse);
