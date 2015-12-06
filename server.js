@@ -8,7 +8,7 @@ var objectAssign = require('object-assign');
 
 // database
 var redis = require("redis"),
-    client = redis.createClient();
+    client = redis.createClient(process.env.REDIS_URL);
 
 client.on("error", function (err) {
     console.log("Error " + err);
@@ -52,7 +52,7 @@ app.get('/_config/*', function(req, res, next) {
     });
   }
 });
-console.log('listning on ' + process.env.PORT);
+
 app.listen(process.env.PORT || 80);
 
 module.exports = app;
